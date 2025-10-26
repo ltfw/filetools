@@ -100,35 +100,39 @@ def rename_files_with_employee_data():
     """Rename files in cropped/ folder using employee data."""
     script_dir = Path(__file__).resolve().parent
     cropped_dir = script_dir / 'cropped'
-    
+    rename_dir = script_dir / 'rename'
+
     if not cropped_dir.exists():
         print(f"Cropped directory not found: {cropped_dir}")
         return
-    
+
+    # Ensure rename directory exists
+    rename_dir.mkdir(exist_ok=True)
+
     # Load employee data
     employees = load_employee_data()
     if not employees:
         print("No employee data loaded.")
         return
-    
+
     print(f"Loaded {len(set(emp['nama_lengkap'] for emp in employees.values()))} unique employees")
     print("=" * 60)
-    
+
     # Process files
     files = sorted(cropped_dir.iterdir())
-    renamed_count = 0
+    copied_count = 0
     unmatched_files = []
-    
+
     for file_path in files:
         if file_path.is_file() and file_path.name.endswith('_face.jpg'):
             # Find matching employee
             employee = find_employee_match(file_path.name, employees)
-            
+
             if employee:
                 # Create new filename based on name length
                 full_name = employee['nama_lengkap']
                 name_parts = full_name.split()
-                
+
                 if len(name_parts) >= 3:
                     # For names with more than 3 words: firstName+middleName lastName_nik
                     first_middle = ' '.join(name_parts[:-1])  # All parts except last
@@ -137,31 +141,32 @@ def rename_files_with_employee_data():
                 else:
                     # For names with 3 words or less: firstName+lastName_nik
                     new_name = f"{full_name.replace(' ', '+')}_{employee['nik']}.jpg"
-                
-                new_path = cropped_dir / new_name
-                
+
+                new_path = rename_dir / new_name
+
                 # Check if target file already exists
-                if new_path.exists() and new_path != file_path:
+                if new_path.exists():
                     print(f"WARNING: Target file already exists: {new_name}")
                     continue
-                
+
                 try:
-                    file_path.rename(new_path)
-                    print(f"✓ Renamed: {file_path.name}")
+                    # Copy file to rename directory preserving metadata
+                    shutil.copy2(file_path, new_path)
+                    print(f"✓ Copied: {file_path.name}")
                     print(f"  → {new_name}")
                     print(f"  Employee: {employee['nama_lengkap']} ({employee['departemen']})")
                     print()
-                    renamed_count += 1
+                    copied_count += 1
                 except Exception as e:
-                    print(f"✗ Error renaming {file_path.name}: {e}")
+                    print(f"✗ Error copying {file_path.name}: {e}")
             else:
                 unmatched_files.append(file_path.name)
                 print(f"? No match found for: {file_path.name}")
-    
+
     print("=" * 60)
-    print(f"Successfully renamed: {renamed_count} files")
+    print(f"Successfully copied: {copied_count} files")
     print(f"Unmatched files: {len(unmatched_files)}")
-    
+
     if unmatched_files:
         print("\nUnmatched files:")
         for filename in unmatched_files:
