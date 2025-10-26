@@ -129,9 +129,9 @@ def rename_files_with_employee_data():
                 full_name = employee['nama_lengkap']
                 name_parts = full_name.split()
                 
-                if len(name_parts) > 3:
+                if len(name_parts) >= 3:
                     # For names with more than 3 words: firstName+middleName lastName_nik
-                    first_middle = '+'.join(name_parts[:-1])  # All parts except last
+                    first_middle = ' '.join(name_parts[:-1])  # All parts except last
                     last_name = name_parts[-1]  # Last part
                     new_name = f"{first_middle}+{last_name}_{employee['nik']}.jpg"
                 else:
@@ -198,7 +198,17 @@ def preview_renames():
             
             if employee:
                 # Create new filename
-                new_name = f"{employee['nama_lengkap'].replace(' ', '+')}_{employee['nik']}.jpg"
+                full_name = employee['nama_lengkap']
+                name_parts = full_name.split()
+                
+                if len(name_parts) >= 3:
+                    # For names with more than 3 words: firstName+middleName lastName_nik
+                    first_middle = ' '.join(name_parts[:-1])  # All parts except last
+                    last_name = name_parts[-1]  # Last part
+                    new_name = f"{first_middle}+{last_name}_{employee['nik']}.jpg"
+                else:
+                    # For names with 3 words or less: firstName+lastName_nik
+                    new_name = f"{full_name.replace(' ', '+')}_{employee['nik']}.jpg"
                 
                 print(f"✓ {file_path.name}")
                 print(f"  → {new_name}")
