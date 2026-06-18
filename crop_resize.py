@@ -9,8 +9,20 @@ import os
 import sys
 import re
 import argparse
+import subprocess
 from pathlib import Path
-import cv2
+
+# Automatically re-execute in the virtual environment if cv2 is not found
+try:
+    import cv2
+except ImportError:
+    venv_python = Path(__file__).resolve().parent / 'venv' / 'bin' / 'python'
+    if venv_python.exists() and sys.executable != str(venv_python):
+        cmd = [str(venv_python)] + sys.argv
+        sys.exit(subprocess.run(cmd).returncode)
+    else:
+        raise
+
 
 
 def ensure_cascade(name):
