@@ -14,6 +14,7 @@ from pathlib import Path
 
 # Automatically re-execute in the virtual environment if cv2 is not found
 try:
+    # pyrefly: ignore [missing-import]
     import cv2
 except ImportError:
     venv_python = Path(__file__).resolve().parent / 'venv' / 'bin' / 'python'
